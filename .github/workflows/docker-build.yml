@@ -100,6 +100,7 @@ jobs:
         IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECRRepository }}:${{ github.run_number }}
         echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
         echo "imageURI=$IMAGE_URI" >> $GITHUB_OUTPUT
+        echo "imageURI=$IMAGE_URI" >> $GITHUB_OUTPUT
 
     # 🔹 Install jq
     - name: Install jq
