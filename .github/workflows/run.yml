@@ -8,9 +8,9 @@ jobs:
   build:
     uses: ./.github/workflows/docker-build.yml
     with:
-      AWSRoleToAssume: arn:aws:iam::<YOUR_ACCOUNT_ID>:role/github-ecr-role
-      ECRRepository: my-app
-      dockerImageName: my-app
+      AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
+      ECRRepository: streamlit-ecr-deploy
+      dockerImageName: streamlit-ecr-deploy
       createECR: true
       ecrPolicyFile: policy.json
     secrets:
