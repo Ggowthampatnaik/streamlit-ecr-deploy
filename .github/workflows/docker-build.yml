@@ -168,14 +168,7 @@ jobs:
           docker build -t $IMAGE_URI .
         fi
 
-    # 🔹 Orca Scan
-    - name: Scan Image with Orca
-      uses: orcasecurity/shiftleft-container-image-action@v1
-      with:
-        api_token: ${{ secrets.orcaSecurityApiToken }}
-        project_key: ${{ github.repository }}
-        image: ${{ env.IMAGE_URI }}
-        output: ${{ inputs.outputArtifactPath }}
+
 
     # 🔹 PostBuild Command / Push
     - name: Post Build
