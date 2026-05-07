@@ -180,12 +180,4 @@ jobs:
           docker push $IMAGE_URI
         fi
 
-    # 🔹 Upload Artifacts
-    - name: Upload Artifact
-      if: ${{ inputs.outputArtifactPath }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ inputs.outputArtifactName }}
-        path: ${{ inputs.outputArtifactPath }}
-        retention-days: ${{ inputs.outputArtifactRetention }}
-        if-no-files-found: error
+
