@@ -114,6 +114,10 @@ jobs:
         key="${{ inputs.ECRRepository }}-$hash"
         echo "hash=$key" >> $GITHUB_OUTPUT
 
+    - name: Prepare cache directory
+      if: ${{ inputs.ecrPolicyFile }}
+      run: mkdir -p policyhash
+  
     # 🔹 Cache policy hash
     - name: Cache policy
       if: ${{ inputs.ecrPolicyFile }}
