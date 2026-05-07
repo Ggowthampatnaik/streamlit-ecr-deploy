@@ -4,6 +4,11 @@ on:
   push:
     branches: [ "main" ]
 
+# ✅ REQUIRED FOR OIDC
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     uses: ./.github/workflows/docker-build.yml
