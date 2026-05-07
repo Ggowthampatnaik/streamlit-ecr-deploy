@@ -1,0 +1,198 @@
+name: Docker Build, Scan, Push (Full Pipeline)
+
+on:
+  workflow_call:
+    inputs:
+
+      # AWS
+      AWSRegion:
+        type: string
+        default: us-east-1
+
+      AWSRoleToAssume:
+        type: string
+        required: true
+
+      # ECR
+      ECRRepository:
+        type: string
+        required: true
+
+      dockerImageName:
+        type: string
+        required: true
+
+      createECR:
+        type: boolean
+        default: false
+
+      ecrPolicyFile:
+        type: string
+        required: false
+
+      # Commands
+      preBuildCommand:
+        type: string
+        required: false
+
+      buildCommand:
+        type: string
+        required: false
+
+      postBuildCommand:
+        type: string
+        required: false
+
+      # Artifacts
+      outputArtifactPath:
+        type: string
+        default: "scan_results/"
+
+      outputArtifactName:
+        type: string
+        default: "scan_results"
+
+      outputArtifactRetention:
+        type: string
+        default: "5"
+
+    secrets:
+      orcaSecurityApiToken:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REPO: ${{ inputs.ECRRepository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      imageURI: ${{ steps.image.outputs.imageURI }}
+      hash: ${{ steps.hash-policy.outputs.hash }}
+
+    steps:
+
+    # 🔹 Checkout
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # 🔹 OIDC Auth
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.AWSRoleToAssume }}
+        aws-region: ${{ inputs.AWSRegion }}
+
+    # 🔹 Login to ECR
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    # 🔹 Set Image URI
+    - name: Set Image URI
+      id: image
+      run: |
+        IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECRRepository }}:${{ github.run_number }}
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+        echo "imageURI=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+    # 🔹 Install jq
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    # 🔹 Hash policy file
+    - name: Hash policy.json
+      if: ${{ inputs.ecrPolicyFile }}
+      id: hash-policy
+      run: |
+        hash=$(sha512sum "${{ inputs.ecrPolicyFile }}" | cut -d ' ' -f 1)
+        key="${{ inputs.ECRRepository }}-$hash"
+        echo "hash=$key" >> $GITHUB_OUTPUT
+
+    # 🔹 Cache policy hash
+    - name: Cache policy
+      if: ${{ inputs.ecrPolicyFile }}
+      id: cache-policy
+      uses: actions/cache@v4
+      with:
+        path: policyhash
+        key: ${{ steps.hash-policy.outputs.hash }}
+
+    # 🔹 Create ECR repo
+    - name: Create ECR Repo
+      if: ${{ inputs.createECR }}
+      run: |
+        set +e
+        aws ecr describe-repositories --repository-names "$REPO" >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo "Creating repository..."
+          aws ecr create-repository --repository-name "$REPO"
+
+          if [ -f "${{ inputs.ecrPolicyFile }}" ]; then
+            echo "Applying policy..."
+            aws ecr set-repository-policy \
+              --repository-name "$REPO" \
+              --policy-text file://"${{ inputs.ecrPolicyFile }}"
+          fi
+        else
+          echo "Repository exists"
+        fi
+        set -e
+
+    # 🔹 Update policy if changed
+    - name: Update ECR Policy if changed
+      if: ${{ inputs.ecrPolicyFile && steps.cache-policy.outputs.cache-hit != 'true' }}
+      run: |
+        echo "Updating policy..."
+        aws ecr set-repository-policy \
+          --repository-name "$REPO" \
+          --policy-text file://"${{ inputs.ecrPolicyFile }}"
+
+    # 🔹 PreBuild Command
+    - name: Pre Build
+      if: ${{ inputs.preBuildCommand }}
+      run: ${{ inputs.preBuildCommand }}
+
+    # 🔹 Build Step
+    - name: Build Image
+      run: |
+        if [ -n "${{ inputs.buildCommand }}" ]; then
+          echo "Running custom build command"
+          ${{ inputs.buildCommand }}
+        else
+          docker build -t $IMAGE_URI .
+        fi
+
+    # 🔹 Orca Scan
+    - name: Scan Image with Orca
+      uses: orcasecurity/shiftleft-container-image-action@v1
+      with:
+        api_token: ${{ secrets.orcaSecurityApiToken }}
+        project_key: ${{ github.repository }}
+        image: ${{ env.IMAGE_URI }}
+        output: ${{ inputs.outputArtifactPath }}
+
+    # 🔹 PostBuild Command / Push
+    - name: Post Build
+      run: |
+        if [ -n "${{ inputs.postBuildCommand }}" ]; then
+          echo "Running custom post build"
+          ${{ inputs.postBuildCommand }}
+        else
+          docker push $IMAGE_URI
+        fi
+
+    # 🔹 Upload Artifacts
+    - name: Upload Artifact
+      if: ${{ inputs.outputArtifactPath }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.outputArtifactName }}
+        path: ${{ inputs.outputArtifactPath }}
+        retention-days: ${{ inputs.outputArtifactRetention }}
+        if-no-files-found: error
