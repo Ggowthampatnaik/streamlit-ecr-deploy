@@ -176,7 +176,7 @@ jobs:
         # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
       run: |
-         python scripts/validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
+         python validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
 
 
     # 🔹 PostBuild Command / Push
