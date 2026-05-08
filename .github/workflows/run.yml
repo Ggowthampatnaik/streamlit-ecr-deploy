@@ -21,6 +21,7 @@ jobs:
       outputArtifactPath: scan_results/
       outputArtifactName: scan_results
       outputArtifactRetention: 5
+      inputArtifactDownloadName: scan_results
 
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
