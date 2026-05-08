@@ -171,38 +171,31 @@ jobs:
       if: ${{ inputs.preBuildCommand }}
       run: ${{ inputs.preBuildCommand }}
 
-    # 🔹 Download Input Artifact (if provided)
+    # 🔹 Download Input Artifact (same workflow scope)
     - name: Download Artifact
-      if: ${{ inputs.inputArtifactDownloadName }}
+      if: ${{ inputs.inputArtifactDownloadName != '' }}
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.inputArtifactDownloadName }}
         path: ./artifact
-
-    - name: Show downloaded artifacts
-      if: ${{ inputs.inputArtifactDownloadName }}
+    
+    # 🔹 Download Input Artifact (if provided)
+    - name: Show Downloaded Artifact
       run: |
         echo "📦 Listing downloaded artifact contents:"
-        ls -R ./artifact
+        ls -R ./artifact || echo "No artifact found"
     
-        echo "------------------------"
-        echo "📄 File contents (if any text files):"
-    
-        find ./artifact -type f | while read file; do
-          echo "==== $file ===="
-          cat "$file"
-          echo ""
-        done
-    
-    # 🔹 Build Step
-    - name: Build Image
-      run: |
-        if [ -n "${{ inputs.buildCommand }}" ]; then
-          echo "Running custom build command"
-          ${{ inputs.buildCommand }}
-        else
-          docker build -t $IMAGE_URI .
-        fi
+        echo "📄 Printing files:"
+        find ./artifact -type f -exec cat {} \; || true    
+        # 🔹 Build Step
+        - name: Build Image
+          run: |
+            if [ -n "${{ inputs.buildCommand }}" ]; then
+              echo "Running custom build command"
+              ${{ inputs.buildCommand }}
+            else
+              docker build -t $IMAGE_URI .
+            fi
         
         # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
