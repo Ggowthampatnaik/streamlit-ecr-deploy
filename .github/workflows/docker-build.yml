@@ -76,6 +76,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  actions: read
 
 env:
   REPO: ${{ inputs.ECRRepository }}
@@ -181,6 +182,22 @@ jobs:
       run: |
         echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
 
+    - name: Get latest workflow run ID
+      id: get-run
+      run: |
+        echo "Fetching latest successful workflow run..."
+    
+        RUN_ID=$(curl -s \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/actions/runs \
+          | jq '.workflow_runs 
+                | map(select(.conclusion=="success")) 
+                | .[0].id')
+    
+        echo "Latest run ID: $RUN_ID"
+        echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
     - name: Inspect downloaded artifacts
       run: |
         echo "📦 Checking artifact directory..."
@@ -202,6 +219,7 @@ jobs:
       with:
         name: ${{ inputs.inputArtifactDownloadName }}
         path: ./artifact
+        run-id: ${{ steps.get-run.outputs.run_id }}
         
   
       # 🔹 Custom Image Validation Step
