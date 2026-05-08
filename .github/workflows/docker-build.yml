@@ -181,14 +181,6 @@ jobs:
       run: |
         echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
 
-    # 🔹 Download Input Artifact (same workflow scope)
-    - name: Download Artifact
-      if: ${{ inputs.inputArtifactDownloadName != '' }}
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.inputArtifactDownloadName }}
-        path: ./artifact
-        
     - name: Inspect downloaded artifacts
       run: |
         echo "📦 Checking artifact directory..."
@@ -202,6 +194,16 @@ jobs:
           ls -R .
           exit 1
         fi       
+      
+    # 🔹 Download Input Artifact (same workflow scope)
+    - name: Download Artifact
+      if: ${{ inputs.inputArtifactDownloadName != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.inputArtifactDownloadName }}
+        path: ./artifact
+        
+  
       # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
       run: |
