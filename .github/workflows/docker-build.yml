@@ -95,13 +95,27 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+
     # 🔹 OIDC Auth
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.AWSRoleToAssume }}
         aws-region: ${{ inputs.AWSRegion }}
-        role-duration-seconds: ${{ inputs.AWSRoleDurationSeconds }}
+        role-duration-seconds: 900
+
+    - name: Wait for 900 seconds
+      run: sleep 1000
+
+    - name: Show credential expiration
+      run: |
+        echo "Checking expiration..."
+        aws sts get-caller-identity
+        env | grep AWS
+
+    - name: Check expiration via STS
+      run: |
+        aws sts get-caller-identity
 
     # 🔹 Login to ECR
     - name: Login to ECR
@@ -194,7 +208,10 @@ jobs:
         echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
 
     - name: Wait for 900 seconds
-      run: sleep 900
+      run: sleep 1000
+
+    - name: Call AWS after expiry
+      run: aws ecr describe-repositories
       # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
       run: |
