@@ -171,6 +171,10 @@ jobs:
       if: ${{ inputs.preBuildCommand }}
       run: ${{ inputs.preBuildCommand }}
 
+    - name: Debug Artifact Input
+      run: |
+        echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
+
     # 🔹 Download Input Artifact (same workflow scope)
     - name: Download Artifact
       if: ${{ inputs.inputArtifactDownloadName != '' }}
