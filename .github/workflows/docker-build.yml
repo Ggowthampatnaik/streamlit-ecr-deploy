@@ -237,18 +237,6 @@ jobs:
         fi
 
 
-    - name: Debug Artifact Input
-      run: |
-        echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
-
-    - name: Call AWS after expiry
-      run: aws ecr describe-repositories
-      # 🔹 Custom Image Validation Step
-    - name: Validate Image (Custom Function)
-      run: |
-         python validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
-
-
     # 🔹 PostBuild Command / Push
     - name: Post Build
       run: |
