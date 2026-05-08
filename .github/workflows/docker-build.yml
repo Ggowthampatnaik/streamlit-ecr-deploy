@@ -198,20 +198,7 @@ jobs:
         echo "Latest run ID: $RUN_ID"
         echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
-    - name: Inspect downloaded artifacts
-      run: |
-        echo "📦 Checking artifact directory..."
-        
-        if [ -d "./artifact" ]; then
-          echo "✅ artifact folder exists"
-          ls -R ./artifact
-        else
-          echo "❌ artifact folder does NOT exist"
-          echo "Current directory:"
-          ls -R .
-          exit 1
-        fi       
-      
+  
     # 🔹 Download Input Artifact (same workflow scope)
     - name: Download Artifact
       if: ${{ inputs.inputArtifactDownloadName != '' }}
@@ -221,7 +208,12 @@ jobs:
         path: ./artifact
         run-id: ${{ steps.get-run.outputs.run_id }}
         
-  
+    - name: Confirm Download Source
+      run: |
+        echo "✅ Artifact downloaded from run ID: ${{ steps.get-run.outputs.run_id }}"
+        echo "📦 Contents:"
+        ls -R ./artifact
+        
       # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
       run: |
