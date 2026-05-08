@@ -182,26 +182,21 @@ jobs:
       with:
         name: ${{ inputs.inputArtifactDownloadName }}
         path: ./artifact
-    
-    # 🔹 Download Input Artifact (if provided)
-    - name: Show Downloaded Artifact
-      run: |
-        echo "📦 Listing downloaded artifact contents:"
-        ls -R ./artifact || echo "No artifact found"
-    
-        echo "📄 Printing files:"
-        find ./artifact -type f -exec cat {} \; || true    
-        # 🔹 Build Step
-        - name: Build Image
-          run: |
-            if [ -n "${{ inputs.buildCommand }}" ]; then
-              echo "Running custom build command"
-              ${{ inputs.buildCommand }}
-            else
-              docker build -t $IMAGE_URI .
-            fi
         
-        # 🔹 Custom Image Validation Step
+    - name: Inspect downloaded artifacts
+      run: |
+        echo "📦 Checking artifact directory..."
+        
+        if [ -d "./artifact" ]; then
+          echo "✅ artifact folder exists"
+          ls -R ./artifact
+        else
+          echo "❌ artifact folder does NOT exist"
+          echo "Current directory:"
+          ls -R .
+          exit 1
+        fi       
+      # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
       run: |
          python validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
