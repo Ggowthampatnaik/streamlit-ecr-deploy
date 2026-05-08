@@ -188,19 +188,22 @@ jobs:
     - name: Get latest workflow run ID
       id: get-run
       run: |
-        echo "Fetching latest successful workflow run..."
-    
         RUN_ID=$(curl -s \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github+json" \
           https://api.github.com/repos/${{ github.repository }}/actions/runs \
           | jq '.workflow_runs 
-                | map(select(.conclusion=="success")) 
+                | map(select(.name=="Run Docker Pipeline" and .conclusion=="success")) 
                 | .[0].id')
     
         echo "Latest run ID: $RUN_ID"
         echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
+    - name: List artifacts in selected run
+      run: |
+        curl -s \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ steps.get-run.outputs.run_id }}/artifacts \
+          | jq '.artifacts[].name'
   
     # 🔹 Download Input Artifact (same workflow scope)
     - name: Download Artifact
