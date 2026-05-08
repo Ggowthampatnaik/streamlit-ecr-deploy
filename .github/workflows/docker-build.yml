@@ -13,6 +13,11 @@ on:
         type: string
         required: true
 
+      AWSRoleDurationSeconds:
+        description: How long the assumed role session lasts (in seconds)
+        type: string
+        default: "10"
+
       # ECR
       ECRRepository:
         type: string
@@ -95,6 +100,7 @@ jobs:
       with:
         role-to-assume: ${{ inputs.AWSRoleToAssume }}
         aws-region: ${{ inputs.AWSRegion }}
+        role-duration-seconds: ${{ inputs.AWSRoleDurationSeconds }}
 
     # 🔹 Login to ECR
     - name: Login to ECR
