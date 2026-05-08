@@ -43,6 +43,14 @@ on:
         type: string
         required: false
 
+      inputArtifactDownloadName:
+        type: string
+        required: false
+
+      inputArtifactPath:
+        type: string
+        default: "./artifact"
+
       # Artifacts
       outputArtifactPath:
         type: string
@@ -163,6 +171,29 @@ jobs:
       if: ${{ inputs.preBuildCommand }}
       run: ${{ inputs.preBuildCommand }}
 
+    # 🔹 Download Input Artifact (if provided)
+    - name: Download Artifact
+      if: ${{ inputs.inputArtifactDownloadName }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.inputArtifactDownloadName }}
+        path: ./artifact
+
+    - name: Show downloaded artifacts
+      if: ${{ inputs.inputArtifactDownloadName }}
+      run: |
+        echo "📦 Listing downloaded artifact contents:"
+        ls -R ./artifact
+    
+        echo "------------------------"
+        echo "📄 File contents (if any text files):"
+    
+        find ./artifact -type f | while read file; do
+          echo "==== $file ===="
+          cat "$file"
+          echo ""
+        done
+    
     # 🔹 Build Step
     - name: Build Image
       run: |
