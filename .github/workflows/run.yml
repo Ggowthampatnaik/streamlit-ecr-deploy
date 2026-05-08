@@ -15,9 +15,10 @@ jobs:
     with:
       AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
       ECRRepository: streamlit-ecr-deploy
-      dockerImageName: 493272324412.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:latest
+      dockerImageName: 493272324412.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:$ {{ github.run_number }}
       createECR: true
       ecrPolicyFile: policy.json
+      AWSRoleDurationSeconds: 900
 
       outputArtifactPath: scan_results/
       outputArtifactName: scan_results
