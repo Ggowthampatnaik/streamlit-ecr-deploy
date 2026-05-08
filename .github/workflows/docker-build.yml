@@ -212,7 +212,7 @@ jobs:
       with:
         name: ${{ inputs.inputArtifactDownloadName }}
         path: ./artifact
-        run-id: ${{ steps.get-run.outputs.run_id }}
+        
         github-token: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Confirm Download Source
