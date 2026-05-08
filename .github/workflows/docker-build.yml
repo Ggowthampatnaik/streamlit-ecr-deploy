@@ -182,38 +182,8 @@ jobs:
       run: |
         echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
 
-    - name: Get latest workflow run ID
-      id: get-run
-      run: |
-        echo "Fetching latest successful workflow run..."
-    
-        RUN_ID=$(curl -s \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github+json" \
-          https://api.github.com/repos/${{ github.repository }}/actions/runs \
-          | jq '.workflow_runs 
-                | map(select(.conclusion=="success")) 
-                | .[0].id')
-    
-        echo "Latest run ID: $RUN_ID"
-        echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-
-  
-    # 🔹 Download Input Artifact (same workflow scope)
-    - name: Download Artifact
-      if: ${{ inputs.inputArtifactDownloadName != '' }}
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.inputArtifactDownloadName }}
-        path: ./artifact
-        run-id: ${{ steps.get-run.outputs.run_id }}
-        
-    - name: Confirm Download Source
-      run: |
-        echo "✅ Artifact downloaded from run ID: ${{ steps.get-run.outputs.run_id }}"
-        echo "📦 Contents:"
-        ls -R ./artifact
-        
+    - name: Wait for 900 seconds
+      run: sleep 900
       # 🔹 Custom Image Validation Step
     - name: Validate Image (Custom Function)
       run: |
