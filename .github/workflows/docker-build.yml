@@ -236,6 +236,10 @@ jobs:
           docker build -t $IMAGE_URI .
         fi
 
+      #scan Image
+    - name: Validate Image (Custom Function)
+      run: |
+         python validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
 
     # 🔹 PostBuild Command / Push
     - name: Post Build
