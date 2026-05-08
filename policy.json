@@ -2,14 +2,19 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowPushPull",
+      "Sid": "AllowPushFromSpecificRole",
       "Effect": "Allow",
-      "Principal": "*",
+      "Principal": {
+        "AWS": "arn:aws:iam::493272324412:role/github-ecr-role"
+      },
       "Action": [
-        "ecr:BatchGetImage",
-        "ecr:PutImage",
-        "ecr:GetDownloadUrlForLayer" 
-      ]
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:PutImage"
+      ],
+      "Resource": "arn:aws:ecr:us-east-1:493272324412:repository/streamlit-ecr-deploy"
     }
   ]
 }
