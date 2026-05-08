@@ -178,6 +178,17 @@ jobs:
       if: ${{ inputs.preBuildCommand }}
       run: ${{ inputs.preBuildCommand }}
 
+        # 🔹 Build Step
+    - name: Build Image
+      run: |
+        if [ -n "${{ inputs.buildCommand }}" ]; then
+          echo "Running custom build command"
+          ${{ inputs.buildCommand }}
+        else
+          docker build -t $IMAGE_URI .
+        fi
+
+
     - name: Debug Artifact Input
       run: |
         echo "Artifact name = '${{ inputs.inputArtifactDownloadName }}'"
