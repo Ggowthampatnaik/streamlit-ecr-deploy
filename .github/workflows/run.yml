@@ -2,9 +2,8 @@ name: Run Docker Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
-# ✅ REQUIRED FOR OIDC
 permissions:
   id-token: write
   contents: read
@@ -15,8 +14,13 @@ jobs:
     with:
       AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
       ECRRepository: streamlit-ecr-deploy
-      dockerImageName: streamlit-ecr-deploy
+      dockerImageName: 493272324412.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:latest
       createECR: true
       ecrPolicyFile: policy.json
+
+      outputArtifactPath: scan_results/
+      outputArtifactName: scan_results
+      outputArtifactRetention: 5
+
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
