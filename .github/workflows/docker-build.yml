@@ -172,7 +172,11 @@ jobs:
         else
           docker build -t $IMAGE_URI .
         fi
-
+        
+        # 🔹 Custom Image Validation Step
+    - name: Validate Image (Custom Function)
+      run: |
+         python scripts/validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
 
 
     # 🔹 PostBuild Command / Push
@@ -185,4 +189,11 @@ jobs:
           docker push $IMAGE_URI
         fi
 
-
+    - name: Upload Validation Artifact
+      if: ${{ inputs.outputArtifactPath }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.outputArtifactName }}
+        path: validation_report.json
+        retention-days: ${{ inputs.outputArtifactRetention }}
+        if-no-files-found: error
