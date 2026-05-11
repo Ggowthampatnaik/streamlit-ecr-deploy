@@ -2,7 +2,7 @@ name: Run Docker Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: ["test"]
 
 permissions:
   id-token: write
@@ -40,6 +40,7 @@ jobs:
 
       dockerImageName: 493272324412.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ github.run_number }}
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_URI .
+      
       createECR: true
       ecrPolicyFile: policy.json
       AWSRoleDurationSeconds: 900
