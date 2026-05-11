@@ -50,7 +50,7 @@ jobs:
       outputArtifactRetention: 5
       inputArtifactDownloadName: scan_results
 
-      # 👇 pass run_id into reusable workflow
+      # 👇 pass run_id into reusable workflows
       run_id: ${{ needs.get-run-id.outputs.run_id }}
 
     secrets:
