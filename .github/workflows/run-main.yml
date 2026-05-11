@@ -16,7 +16,12 @@ jobs:
       run_id: ${{ steps.get-run.outputs.run_id }}
 
     steps:
-      - name: Bring test.py from main branch
+
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Bring test.py from main
         run: |
           git fetch origin main
           git checkout origin/main -- app/test.py
