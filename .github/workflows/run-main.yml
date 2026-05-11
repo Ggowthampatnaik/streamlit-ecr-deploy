@@ -6,6 +6,11 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
 env:
   AWS_REGION: us-east-1
 
