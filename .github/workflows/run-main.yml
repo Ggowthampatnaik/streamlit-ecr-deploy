@@ -22,7 +22,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::493272324412:role/github-ecr-role
+          role-to-assume: arn:aws:iam::493272324412:role/github-ecr-role1
           role-session-name: github-action
 
       # Add your Docker build / push / ECS deploy steps below
