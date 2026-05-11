@@ -8,8 +8,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
-  actions: read
+
 
 env:
   AWS_REGION: us-east-1
