@@ -16,6 +16,11 @@ jobs:
       run_id: ${{ steps.get-run.outputs.run_id }}
 
     steps:
+      - name: Bring test.py from main branch
+        run: |
+          git fetch origin main
+          git checkout origin/main -- app/test.py
+          
       - name: Get latest workflow run ID
         id: get-run
         run: |
