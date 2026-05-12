@@ -40,7 +40,7 @@ jobs:
     needs: SetupEnvVars
     uses: ./.github/workflows/docker-build.yml
     with:
-      AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
+      AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
       AWSRegion: us-east-1
 
       ECRRepository: streamlit-ecr-deploy
