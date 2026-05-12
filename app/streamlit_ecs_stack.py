@@ -6,7 +6,7 @@ from aws_cdk import (
     aws_ecs_patterns as ecs_patterns,
 )
 from constructs import Construct
-
+from aws_cdk import aws_iam as iam
 
 class StreamlitEcsStack(Stack):
     def __init__(
@@ -48,7 +48,17 @@ class StreamlitEcsStack(Stack):
                 container_port=8501
             )
         )
-
+        service.task_definition.execution_role.add_to_policy(
+    iam.PolicyStatement(
+        actions=[
+            "ecr:GetAuthorizationToken",
+            "ecr:BatchCheckLayerAvailability",
+            "ecr:GetDownloadUrlForLayer",
+            "ecr:BatchGetImage"
+        ],
+        resources=["*"]
+    )
+)
         service.target_group.configure_health_check(
             path="/",
             port="8501"
