@@ -61,16 +61,32 @@ jobs:
 
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
-  
   synthApp:
     needs:
       - SetupEnvVars
       - dockerBuild
-    uses: ./.github/workflows/cdkSynth.yml
+    uses: Ggowthampatnaik/streamlit-ecr-deploy/.github/workflows/cdkSynth.yml@v11.1.1
     with:
       environment: ${{ github.event.inputs.aws_environment || 'dev' }}
+
+      AWSRegion: us-east-1
+      AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
+      AWSRoleSessionName: gha-build-github-ecr-role
+      AWSRoleDurationSeconds: 900
+      AWSMaskAccountId: false
+
       outputArtifactName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
-      synthCommand: npx cdk synth -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
+      outputArtifactRetention: 5
+
+      preBuildCommand: |
+        git fetch origin main
+        git checkout origin/main -- app
+
+      synthCommand: |
+        npm install
+        npx cdk synth -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
+
+    secrets: inherit
     
   deployApp:
     needs:
@@ -81,12 +97,13 @@ jobs:
       environment: ${{ github.event.inputs.aws_environment || 'dev' }}
 
       AWSRegion: us-east-1
-      AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
+      AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
       AWSRoleSessionName: gha-build-github-ecr-role
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
+
       inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
 
-      # inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
-
       deployArgs: -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
+
+    secrets: inherit
