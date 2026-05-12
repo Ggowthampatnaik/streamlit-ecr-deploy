@@ -55,7 +55,8 @@ jobs:
 
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
 
-      outputArtifactPath: validation_report.json
+      outputArtifactName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
+      outputArtifactPath: cdk.out
       outputArtifactRetention: 5
 
     secrets:
@@ -74,7 +75,7 @@ jobs:
       AWSRoleSessionName: gha-build-github-ecr-role
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
-      inputArtifactDownloadName: scan_results
+      inputArtifactDownloadName: {{ github.event.inputs.aws_environment || 'dev' }}-infra
 
       # inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
 
