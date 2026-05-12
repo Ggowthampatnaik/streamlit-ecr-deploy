@@ -48,10 +48,10 @@ jobs:
 
       createECR: true
       ecrPolicyFile: policy.json
-
+      
       preBuildCommand: |
         git fetch origin main
-        git checkout origin/main -- app/test.py
+        git checkout origin/main -- app
 
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
 
