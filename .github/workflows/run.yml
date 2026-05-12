@@ -66,6 +66,7 @@ jobs:
   deployApp:
     needs:
       - SetupEnvVars
+      - dockerBuild
 
     uses: Ggowthampatnaik/streamlit-ecr-deploy/.github/workflows/cdkDeploy.yml@v11.1.1
     with:
@@ -80,5 +81,6 @@ jobs:
       deployArgs: >
         -c env=${{ github.event.inputs.aws_environment || 'dev' }}
         -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
-        -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:57
+        -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ github.run_number }}
+
     secrets: inherit
