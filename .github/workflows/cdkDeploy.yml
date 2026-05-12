@@ -55,6 +55,8 @@ permissions:
   actions: read
 
 jobs:
+
+
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -72,6 +74,8 @@ jobs:
           role-session-name: ${{ inputs.AWSRoleSessionName }}
           mask-aws-account-id: ${{ inputs.AWSMaskAccountId }}
 
+
+        
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -89,6 +93,10 @@ jobs:
         run: |
           pwd
           ls -R
+
+      - name: Bootstrap CDK
+        run: |
+          cdk bootstrap aws://493272324412/us-east-1
 
       - name: Deploy CDK
         working-directory: ${{ inputs.workingDirectory }}
