@@ -53,7 +53,7 @@ jobs:
         git fetch origin main
         git checkout origin/main -- app/test.py
 
-      buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
+      buildCommand: docker build -f ./app/Dockerfile -t ${{ inputs.dockerImageName }} ./app
 
       outputArtifactPath: scan_results/
       outputArtifactName: scan_results
