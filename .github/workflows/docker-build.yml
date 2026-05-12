@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      imageURI: ${{ steps.image.outputs.imageURI }}
+      imageARN: ${{ steps.imageName.outputs.imageARN }}
       hash: ${{ steps.hash-policy.outputs.hash }}
 
     steps:
@@ -125,13 +125,12 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
 
     # 🔹 Set Image URI
-    - name: Set Image URI
-      id: image
+    - name: Set image name
+      id: imageName
       run: |
-        IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECRRepository }}:${{ github.run_number }}
-        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-        echo "imageURI=$IMAGE_URI" >> $GITHUB_OUTPUT
-        echo "imageURI=$IMAGE_URI" >> $GITHUB_OUTPUT
+       echo "IMAGE_NAME=${{ inputs.dockerImageName }}" >> $GITHUB_ENV
+       echo "imageARN=${{ inputs.dockerImageName }}" >> $GITHUB_OUTPUT
+
 
     # 🔹 Install jq
     - name: Install jq
@@ -213,13 +212,13 @@ jobs:
           echo "Running custom build command"
           ${{ inputs.buildCommand }}
         else
-          docker build -t $IMAGE_URI .
+          docker build -t ${{ inputs.dockerImageName }} .
         fi
 
       #scan Image
     - name: Validate Image (Custom Function)
       run: |
-         python validate_image.py "${{ steps.image.outputs.imageURI }}" > validation_report.json
+         python validate_image.py "${{ inputs.dockerImageName }}" > validation_report.json
 
     # 🔹 PostBuild Command / Push
     - name: Post Build
@@ -228,12 +227,8 @@ jobs:
           echo "Running custom post build"
           ${{ inputs.postBuildCommand }}
         else
-          docker push $IMAGE_URI
+          docker push ${{ inputs.dockerImageName }}
         fi
-        
-    - name: Run Container Debug
-      run: |
-        timeout 15s docker run --rm $IMAGE_URI || true
 
     - name: Upload Validation Artifact
       if: ${{ inputs.outputArtifactPath }}
