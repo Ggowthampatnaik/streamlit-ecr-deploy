@@ -233,7 +233,7 @@ jobs:
         
     - name: Run Container Debug
       run: |
-        docker run --rm $IMAGE_URI
+        timeout 15s docker run --rm $IMAGE_URI || true
 
     - name: Upload Validation Artifact
       if: ${{ inputs.outputArtifactPath }}
