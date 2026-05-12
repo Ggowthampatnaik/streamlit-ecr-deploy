@@ -35,32 +35,33 @@ jobs:
       - name: Set Account Number
         id: account_num_step
         run: echo "account_num=${{ vars.ACCOUNT_NUM }}" >> "$GITHUB_OUTPUT"
-
+  
   dockerBuild:
     needs: SetupEnvVars
     uses: Ggowthampatnaik/streamlit-ecr-deploy/.github/workflows/docker-build.yml@main
     with:
       AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
       AWSRegion: us-east-1
-
+  
       ECRRepository: streamlit-ecr-deploy
       dockerImageName: ${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ github.run_number }}
-
+  
       createECR: true
       ecrPolicyFile: policy.json
-      
+  
       preBuildCommand: |
         git fetch origin main
         git checkout origin/main -- app
-
+  
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
-
-      outputArtifactUploadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
-      outputArtifactPath: cdk.out
+  
+      outputArtifactUploadName: scan_results
+      outputArtifactPath: validation_report.json
       outputArtifactRetention: 5
-
+  
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
+
   synthApp:
     needs:
       - SetupEnvVars
@@ -71,7 +72,7 @@ jobs:
 
       AWSRegion: us-east-1
       AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
-      AWSRoleSessionName: gha-build-github-ecr-role
+      AWSRoleSessionName: gha-cdk-synth
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
 
@@ -87,7 +88,7 @@ jobs:
         npx cdk synth -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
 
     secrets: inherit
-    
+  
   deployApp:
     needs:
       - SetupEnvVars
@@ -98,7 +99,7 @@ jobs:
 
       AWSRegion: us-east-1
       AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
-      AWSRoleSessionName: gha-build-github-ecr-role
+      AWSRoleSessionName: gha-cdk-deploy
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
 
