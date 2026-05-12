@@ -35,9 +35,9 @@ on:
         type: string
         default: "latest"
 
-      inputArtifactDownloadName:
+      workingDirectory:
         type: string
-        required: true
+        default: "."
 
       deployArgs:
         type: string
@@ -60,6 +60,9 @@ jobs:
     environment: ${{ inputs.environment }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -69,12 +72,6 @@ jobs:
           role-session-name: ${{ inputs.AWSRoleSessionName }}
           mask-aws-account-id: ${{ inputs.AWSMaskAccountId }}
 
-      - name: Download CDK Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.inputArtifactDownloadName }}
-          path: ./artifact
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -83,13 +80,19 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@${{ inputs.cdkVersion }}
 
-      - name: List artifact files
-        run: ls -R ./artifact
+      - name: Install Dependencies
+        working-directory: ${{ inputs.workingDirectory }}
+        run: npm install
+
+      - name: Debug Directory
+        run: |
+          pwd
+          ls -R
 
       - name: Deploy CDK
+        working-directory: ${{ inputs.workingDirectory }}
         run: |
           cdk deploy \
-            --app ./artifact \
             --require-approval never \
             ${{ inputs.deployArgs }} \
             ${{ inputs.stackName }}
