@@ -55,7 +55,7 @@ jobs:
 
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
 
-      outputArtifactPath: scan_results/
+      outputArtifactPath: validation_report.json
       outputArtifactRetention: 5
 
     secrets:
