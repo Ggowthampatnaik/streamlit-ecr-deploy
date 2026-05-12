@@ -230,6 +230,10 @@ jobs:
         else
           docker push $IMAGE_URI
         fi
+        
+    - name: Run Container Debug
+      run: |
+        docker run --rm $IMAGE_URI
 
     - name: Upload Validation Artifact
       if: ${{ inputs.outputArtifactPath }}
