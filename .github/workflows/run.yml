@@ -62,37 +62,11 @@ jobs:
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
 
-  synthApp:
-    needs:
-      - SetupEnvVars
-      - dockerBuild
-    uses: Ggowthampatnaik/streamlit-ecr-deploy/.github/workflows/cdkSynth.yml@v11.1.1
-    with:
-      environment: ${{ github.event.inputs.aws_environment || 'dev' }}
 
-      AWSRegion: us-east-1
-      AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
-      AWSRoleSessionName: gha-cdk-synth
-      AWSRoleDurationSeconds: 900
-      AWSMaskAccountId: false
-
-      outputArtifactName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
-      outputArtifactRetention: 5
-
-      preBuildCommand: |
-        git fetch origin main
-        git checkout origin/main -- app
-
-      synthCommand: |
-        npm install
-        npx cdk synth -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
-
-    secrets: inherit
-  
   deployApp:
     needs:
       - SetupEnvVars
-      - synthApp
+
     uses: Ggowthampatnaik/streamlit-ecr-deploy/.github/workflows/cdkDeploy.yml@v11.1.1
     with:
       environment: ${{ github.event.inputs.aws_environment || 'dev' }}
