@@ -70,7 +70,7 @@ jobs:
       environment: ${{ github.event.inputs.aws_environment || 'dev' }}
 
       AWSRegion: us-east-1
-      AWSRoleToAssume: arn:aws:iam::${{ needs.SetupEnvVars.outputs.account_num }}:role/github-ecr-role
+      AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
       AWSRoleSessionName: gha-build-github-ecr-role
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
