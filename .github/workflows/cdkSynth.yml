@@ -46,6 +46,7 @@ on:
       preBuildCommand:
         type: string
         required: false
+        default: ""
 
       synthCommand:
         type: string
@@ -56,17 +57,13 @@ permissions:
   contents: read
   actions: read
 
-env:
-  ENVIRONMENT: ${{ inputs.environment }}
-  GH_RUN_NUM: ${{ github.run_number }}
-
 jobs:
   synth:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
@@ -86,21 +83,15 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@${{ inputs.cdkVersion }}
 
-      - name: Install Dependencies
-        run: npm install
-
       - name: Pre Build
-        if: ${{ inputs.preBuildCommand }}
+        if: ${{ inputs.preBuildCommand != '' }}
         run: ${{ inputs.preBuildCommand }}
 
       - name: Run CDK Synth
-        run: |
-          ${{ inputs.synthCommand }}
+        run: ${{ inputs.synthCommand }}
 
-      - name: Debug Synth Output
-        run: |
-          echo "===== CDK.OUT FILES ====="
-          ls -R cdk.out
+      - name: Debug cdk.out
+        run: ls -R cdk.out
 
       - name: Upload CDK Artifact
         uses: actions/upload-artifact@v4
