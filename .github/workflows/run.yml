@@ -63,15 +63,15 @@ jobs:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
   
   synthApp:
-  needs:
-    - SetupEnvVars
-    - dockerBuild
-  uses: ./.github/workflows/cdkSynth.yml
-  with:
-    environment: ${{ github.event.inputs.aws_environment || 'dev' }}
-    outputArtifactName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
-    synthCommand: npx cdk synth -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
-  
+    needs:
+      - SetupEnvVars
+      - dockerBuild
+    uses: ./.github/workflows/cdkSynth.yml
+    with:
+      environment: ${{ github.event.inputs.aws_environment || 'dev' }}
+      outputArtifactName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
+      synthCommand: npx cdk synth -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
+    
   deployApp:
     needs:
       - SetupEnvVars
@@ -85,7 +85,7 @@ jobs:
       AWSRoleSessionName: gha-build-github-ecr-role
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
-      inputArtifactDownloadName: {{ github.event.inputs.aws_environment || 'dev' }}-infra
+      inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
 
       # inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
 
