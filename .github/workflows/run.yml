@@ -56,7 +56,6 @@ jobs:
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
 
       outputArtifactPath: scan_results/
-      outputArtifactUploadName: scan_results
       outputArtifactRetention: 5
 
     secrets:
