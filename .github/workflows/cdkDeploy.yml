@@ -7,25 +7,29 @@ on:
         type: string
         required: true
 
-      AWSRegion:
-        type: string
-        default: us-east-1
-
+       # AWS configuration
       AWSRoleToAssume:
+        description: AWS role ARN to assume. Should have a corresponding trust policy
         type: string
-        required: true
-
+        required: false
+      AWSRegion:
+        default: us-east-2
+        description: Which region to use in AWS. Signet standard is us-east-2
+        type: string
+        required: false
       AWSRoleDurationSeconds:
+        description: How long the assumed role session lasts (in seconds)
         type: string
         default: "900"
-
       AWSRoleSessionName:
+        default: github-action-assumed-role
+        description: A "role session friendly name" to make deciphering logs easier
         type: string
-        default: github-cdk-deploy
-
       AWSMaskAccountId:
+        default: true
+        description: Whether to mask or not mask the AWS Account ID
         type: boolean
-        default: false
+
 
       nodeVersion:
         type: string
