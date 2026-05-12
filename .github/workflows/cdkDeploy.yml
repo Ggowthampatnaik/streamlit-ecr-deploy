@@ -7,29 +7,25 @@ on:
         type: string
         required: true
 
-       # AWS configuration
       AWSRoleToAssume:
-        description: AWS role ARN to assume. Should have a corresponding trust policy
         type: string
-        required: false
+        required: true
+
       AWSRegion:
-        default: us-east-2
-        description: Which region to use in AWS. Signet standard is us-east-2
         type: string
-        required: false
+        default: us-east-1
+
       AWSRoleDurationSeconds:
-        description: How long the assumed role session lasts (in seconds)
         type: string
         default: "900"
-      AWSRoleSessionName:
-        default: github-action-assumed-role
-        description: A "role session friendly name" to make deciphering logs easier
-        type: string
-      AWSMaskAccountId:
-        default: true
-        description: Whether to mask or not mask the AWS Account ID
-        type: boolean
 
+      AWSRoleSessionName:
+        type: string
+        default: github-cdk-deploy
+
+      AWSMaskAccountId:
+        type: boolean
+        default: false
 
       nodeVersion:
         type: string
@@ -40,18 +36,15 @@ on:
         default: "latest"
 
       inputArtifactDownloadName:
-        description: "Artifact name to download"
         type: string
         required: true
 
       deployArgs:
-        description: "Additional CDK deploy arguments"
         type: string
         required: false
         default: ""
 
       stackName:
-        description: "CDK stack name"
         type: string
         required: false
         default: ""
@@ -60,10 +53,6 @@ permissions:
   id-token: write
   contents: read
   actions: read
-
-env:
-  GH_RUN_NUM: ${{ github.run_number }}
-  ENVIRONMENT: ${{ inputs.environment }}
 
 jobs:
   deploy:
@@ -75,12 +64,12 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ inputs.AWSRegion }}
+          role-to-assume: ${{ inputs.AWSRoleToAssume }}
           role-duration-seconds: ${{ inputs.AWSRoleDurationSeconds }}
           role-session-name: ${{ inputs.AWSRoleSessionName }}
-          role-to-assume: ${{ inputs.AWSRoleToAssume }}
           mask-aws-account-id: ${{ inputs.AWSMaskAccountId }}
 
-      - name: Download Artifact
+      - name: Download CDK Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.inputArtifactDownloadName }}
@@ -94,7 +83,7 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@${{ inputs.cdkVersion }}
 
-      - name: List Artifact Files
+      - name: List artifact files
         run: ls -R ./artifact
 
       - name: Deploy CDK
