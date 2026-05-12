@@ -209,6 +209,7 @@ jobs:
     - name: Build Image
       run: |
         if [ -n "${{ inputs.buildCommand }}" ]; then
+          echo "$IMAGE_NAME"
           echo "Running custom build command"
           ${{ inputs.buildCommand }}
         else
