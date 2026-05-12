@@ -3,39 +3,105 @@ name: Docker Build, Scan, Push (Full Pipeline)
 on:
   workflow_call:
     inputs:
-
-      # AWS
-      AWSRegion:
+      environment:
+        description: Which GH environment to use
         type: string
-        default: us-east-1
-
+        required: false
+      runsOn:
+        default: ubuntu-latest
+        description: Platform to execute on
+        type: string
+        required: false
+      workingDirectory:
+        type: string
+        default: "./"
+        description: "specify starting directory"
+        required: false
+      
+      branch:
+        type: string
+        description: "branch/ref of repository to use"
+        default: ""
+        required: false
+        
+       # AWS configuration
       AWSRoleToAssume:
+        description: AWS role ARN to assume. Should have a corresponding trust policy
         type: string
-        required: true
-
+        required: false
+      AWSRegion:
+        default: us-east-2
+        description: Which region to use in AWS. Signet standard is us-east-2
+        type: string
+        required: false
       AWSRoleDurationSeconds:
         description: How long the assumed role session lasts (in seconds)
         type: string
         default: "900"
+      AWSRoleSessionName:
+        default: github-action-assumed-role
+        description: A "role session friendly name" to make deciphering logs easier
+        type: string
+      AWSMaskAccountId:
+        default: true
+        description: Whether to mask or not mask the AWS Account ID
+        type: boolean
+        
+       # Input artifacts
+      inputArtifactPath:
+        type: string
+        description: Where to store the downloaded artifact
+        default: "./artifact"
+
+      inputArtifactDownloadName:
+        type: string
+        required: false
+        
+       # output artifacts
+      outputArtifactPath:
+        type: string
+        description: The path to the artifact to be uploaded. This is relative to github runner home, NOT the working directory
+        default: "scan_results/"
+
+      outputArtifactUploadName:
+        type: string
+        description: The name of the artifact to upload. Defaults to the name of the job using this
+        default: "scan_results"
+
+      outputArtifactRetention:
+        type: string
+        description: How long in days to keep the github action artifact
+        default: "5"
 
       # ECR
       ECRRepository:
+        description: Name of registry in AWS ECR
         type: string
-        required: true
-
-      dockerImageName:
-        type: string
-        required: true
+        required: false
 
       createECR:
+        description: Create ECR repo if it does not exist.
         type: boolean
+        required: false
         default: false
 
       ecrPolicyFile:
+        description: The policy used when creating the ECR repo
+        type: string
+        required: false
+
+      dockerImageName:
+        description: The arn name of the image to be built
+
         type: string
         required: false
 
       # Commands
+      installCommand:
+        description: Command to install dependencies
+        type: string
+        required: false
+        
       preBuildCommand:
         type: string
         required: false
@@ -48,34 +114,25 @@ on:
         type: string
         required: false
 
-      inputArtifactDownloadName:
-        type: string
-        required: false
-
-      inputArtifactPath:
-        type: string
-        default: "./artifact"
-
-      # Artifacts
-      outputArtifactPath:
-        type: string
-        default: "scan_results/"
-
-      outputArtifactName:
-        type: string
-        default: "scan_results"
-
-      outputArtifactRetention:
-        type: string
-        default: "5"
-
       run_id:
         type: string
         default: ""
 
     secrets:
       orcaSecurityApiToken:
+        description: "Orca Security API Token"
         required: true
+      orcaProjectKey:
+        description: "DEPRECATED! Will now be auto-configured if not specified. Orca Security Project Key, looks like '<Github-Org>-<Repo-Name>'"
+        required: false
+    
+    outputs:
+      imageARN:
+        description: "ARN of the image pushed to ECR"
+        value: ${{ jobs.build.outputs.imageARN }}
+      hash:
+        description: "The hash of the policy.json if exists."
+        value: ${{ jobs.build.outputs.hash }}
 
 permissions:
   id-token: write
@@ -83,7 +140,11 @@ permissions:
   actions: read
 
 env:
-  REPO: ${{ inputs.ECRRepository }}
+ GH_RUN_NUM: ${{ github.run_number }}
+ ENVIRONMENT: ${{ inputs.environment }}
+ ECR_REPOSITORY: ${{ inputs.ECRRepository }}
+ ORCA_PROJECT_KEY: ${{ secrets.orcaProjectKey }}
+
 
 jobs:
   build:
@@ -174,15 +235,15 @@ jobs:
       if: ${{ inputs.createECR }}
       run: |
         set +e
-        aws ecr describe-repositories --repository-names "$REPO" >/dev/null 2>&1
+        aws ecr describe-repositories --repository-names "${{ inputs.ECRRepository }}" >/dev/null 2>&1
         if [ $? -ne 0 ]; then
           echo "Creating repository..."
-          aws ecr create-repository --repository-name "$REPO"
+          aws ecr create-repository --repository-name "${{ inputs.ECRRepository }}"
 
           if [ -f "${{ inputs.ecrPolicyFile }}" ]; then
             echo "Applying policy..."
             aws ecr set-repository-policy \
-              --repository-name "$REPO" \
+              --repository-name "${{ inputs.ECRRepository }}" \
               --policy-text file://"${{ inputs.ecrPolicyFile }}"
           fi
         else
@@ -196,7 +257,7 @@ jobs:
       run: |
         echo "Updating policy..."
         aws ecr set-repository-policy \
-          --repository-name "$REPO" \
+          --repository-name "${{ inputs.ECRRepository }}" \
           --policy-text file://"${{ inputs.ecrPolicyFile }}"
        
 
@@ -231,11 +292,11 @@ jobs:
           docker push ${{ inputs.dockerImageName }}
         fi
 
-    - name: Upload Validation Artifact
+    - name: Upload Artifact
       if: ${{ inputs.outputArtifactPath }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.outputArtifactName }}
-        path: validation_report.json
+        name: ${{ (inputs.outputArtifactUploadName == '' && github.job ) || inputs.outputArtifactUploadName }}
+        path: ${{ inputs.outputArtifactPath }}
         retention-days: ${{ inputs.outputArtifactRetention }}
         if-no-files-found: error
