@@ -18,7 +18,7 @@ on:
 
   push:
     branches:
-      - v11.1.1
+      - test
 
 permissions:
   id-token: write
