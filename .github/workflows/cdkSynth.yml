@@ -1,0 +1,111 @@
+name: CDK Synth
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+      AWSRoleToAssume:
+        type: string
+        required: true
+
+      AWSRegion:
+        type: string
+        default: us-east-1
+
+      AWSRoleDurationSeconds:
+        type: string
+        default: "900"
+
+      AWSRoleSessionName:
+        type: string
+        default: github-cdk-synth
+
+      AWSMaskAccountId:
+        type: boolean
+        default: false
+
+      nodeVersion:
+        type: string
+        default: "20"
+
+      cdkVersion:
+        type: string
+        default: "latest"
+
+      outputArtifactName:
+        type: string
+        required: true
+
+      outputArtifactRetention:
+        type: string
+        default: "5"
+
+      preBuildCommand:
+        type: string
+        required: false
+
+      synthCommand:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+env:
+  ENVIRONMENT: ${{ inputs.environment }}
+  GH_RUN_NUM: ${{ github.run_number }}
+
+jobs:
+  synth:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ inputs.AWSRegion }}
+          role-to-assume: ${{ inputs.AWSRoleToAssume }}
+          role-duration-seconds: ${{ inputs.AWSRoleDurationSeconds }}
+          role-session-name: ${{ inputs.AWSRoleSessionName }}
+          mask-aws-account-id: ${{ inputs.AWSMaskAccountId }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.nodeVersion }}
+
+      - name: Install CDK
+        run: npm install -g aws-cdk@${{ inputs.cdkVersion }}
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Pre Build
+        if: ${{ inputs.preBuildCommand }}
+        run: ${{ inputs.preBuildCommand }}
+
+      - name: Run CDK Synth
+        run: |
+          ${{ inputs.synthCommand }}
+
+      - name: Debug Synth Output
+        run: |
+          echo "===== CDK.OUT FILES ====="
+          ls -R cdk.out
+
+      - name: Upload CDK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.outputArtifactName }}
+          path: cdk.out
+          retention-days: ${{ inputs.outputArtifactRetention }}
+          if-no-files-found: error
