@@ -121,23 +121,24 @@ jobs:
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
   
-      workingDirectory: ./app
+      workingDirectory: .
   
       outputArtifactUploadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
       outputArtifactRetention: 5
   
       installCommand: |
         git fetch origin test:test
-        git ls-tree -r --name-only test | head -50
-        git checkout test -- app
-        cd app
-        cp cdk_app.py app.py
-        pip install -r requirements.txt
-  
+        git checkout test -- app/requirements.txt
+        pip install -r app/requirements.txt
+        
       allowDelicateChanges: true
-    
-  
-      synthArgs: -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }} -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ needs.get-build-run-number.outputs.build_run_number }}
+      preBuildCommand: |
+        git fetch origin test:test
+        git checkout test -- app
+        ls -la
+        ls -la app
+        
+      synthArgs: --app "python app/cdk_app.py" -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }} -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ needs.get-build-run-number.outputs.build_run_number }}
    
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
