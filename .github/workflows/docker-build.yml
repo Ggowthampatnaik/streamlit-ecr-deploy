@@ -282,11 +282,3 @@ jobs:
           docker push ${{ inputs.dockerImageName }}
         fi
 
-    - name: Upload Artifact
-      if: ${{ inputs.outputArtifactPath }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ (inputs.outputArtifactUploadName == '' && github.job ) || inputs.outputArtifactUploadName }}
-        path: ${{ inputs.outputArtifactPath }}
-        retention-days: ${{ inputs.outputArtifactRetention }}
-        if-no-files-found: error
