@@ -127,14 +127,14 @@ jobs:
       outputArtifactRetention: 5
   
       installCommand: |
-        pip install -r requirements.txt
-  
-      allowDelicateChanges: true
-      preBuildCommand: |
         git fetch origin test
         git checkout origin/test -- Dockerfile app.py cdk.json cdk_app.py requirements.txt scan.py streamlit_app.py streamlit_ecs_stack.py
         cp cdk_app.py app.py
         ls -la
+        pip install -r requirements.txt
+  
+      allowDelicateChanges: true
+    
   
       synthArgs: -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }} -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ needs.get-build-run-number.outputs.build_run_number }}
    
