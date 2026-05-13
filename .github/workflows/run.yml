@@ -127,10 +127,11 @@ jobs:
       outputArtifactRetention: 5
   
       installCommand: |
-        git fetch origin test
-        git checkout origin/test -- Dockerfile app.py cdk.json cdk_app.py requirements.txt scan.py streamlit_app.py streamlit_ecs_stack.py
+        git fetch origin test:test
+        git ls-tree -r --name-only test | head -50
+        git checkout test -- app
+        cd app
         cp cdk_app.py app.py
-        ls -la
         pip install -r requirements.txt
   
       allowDelicateChanges: true
