@@ -29,15 +29,15 @@ on:
 
       nodeVersion:
         type: string
-        default: "20"
+        default: "22"
 
       cdkVersion:
         type: string
-        default: "latest"
+        default: "2.x"
 
-      workingDirectory:
+      inputArtifactDownloadName:
         type: string
-        default: "./app"
+        required: true
 
       deployArgs:
         type: string
@@ -54,54 +54,47 @@ permissions:
   contents: read
   actions: read
 
+env:
+  GH_RUN_NUM: ${{ github.run_number }}
+  ENVIRONMENT: ${{ inputs.environment }}
+
 jobs:
-
-
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
+        if: ${{ inputs.AWSRoleToAssume }}
         with:
           aws-region: ${{ inputs.AWSRegion }}
-          role-to-assume: ${{ inputs.AWSRoleToAssume }}
           role-duration-seconds: ${{ inputs.AWSRoleDurationSeconds }}
           role-session-name: ${{ inputs.AWSRoleSessionName }}
+          role-to-assume: ${{ inputs.AWSRoleToAssume }}
           mask-aws-account-id: ${{ inputs.AWSMaskAccountId }}
 
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.inputArtifactDownloadName }}
+          path: ./artifact
 
-        
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.nodeVersion }}
 
       - name: Install CDK
-        run: npm install -g aws-cdk@${{ inputs.cdkVersion }}
+        run: npm i -g aws-cdk@${{ inputs.cdkVersion }}
 
-      - name: Install Dependencies
-        working-directory: ${{ inputs.workingDirectory }}
-        run: |
-          pip install -r requirements.txt
+      - name: List artifact files
+        run: ls -R ./artifact
 
-      - name: Debug Directory
-        run: |
-          pwd
-          ls -R
-
-      - name: Bootstrap CDK
-        run: |
-          cdk bootstrap aws://493272324412/us-east-1
-
-      - name: Deploy CDK
-        working-directory: ${{ inputs.workingDirectory }}
+      - name: Deploy
         run: |
           cdk deploy \
+            --app ./artifact \
             --require-approval never \
             ${{ inputs.deployArgs }} \
             ${{ inputs.stackName }}
