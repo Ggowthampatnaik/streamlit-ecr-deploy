@@ -132,7 +132,7 @@ jobs:
       allowDelicateChanges: true
       preBuildCommand: |
         git fetch origin test
-        git checkout origin/test -- app
+        git ls-tree -r --name-only origin/test | head -50
   
       synthArgs: -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }} -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ needs.get-build-run-number.outputs.build_run_number }}
    
