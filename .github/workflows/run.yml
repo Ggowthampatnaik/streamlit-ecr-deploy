@@ -56,8 +56,9 @@ jobs:
       buildCommand: docker build -f ./app/Dockerfile -t $IMAGE_NAME ./app
   
       outputArtifactUploadName: scan_results
-      outputArtifactPath: validation_report.json
+      outputArtifactPath: scan_results/
       outputArtifactRetention: 5
+      inputArtifactDownloadName: scan_results
   
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
