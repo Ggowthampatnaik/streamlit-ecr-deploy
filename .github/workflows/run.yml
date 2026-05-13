@@ -138,9 +138,5 @@ jobs:
       stackName: StreamlitEcsStack
       inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
 
-      deployArgs: >
-        -c env=${{ github.event.inputs.aws_environment || 'dev' }}
-        -c instanceCount=${{ github.event.inputs.instance_count || '1' }}
-        -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ github.run_number }}
-
+      deployArgs: -c env=${{ github.event.inputs.aws_environment || 'dev' }} -c instanceCount=${{ github.event.inputs.instance_count || '1' }} -c imageUri=${{ needs.SetupEnvVars.outputs.account_num }}.dkr.ecr.us-east-1.amazonaws.com/streamlit-ecr-deploy:${{ github.run_number }}
     secrets: inherit
