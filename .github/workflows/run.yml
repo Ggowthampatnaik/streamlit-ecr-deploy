@@ -117,6 +117,8 @@ jobs:
       AWSRoleSessionName: gha-cdk-deploy
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
+      stackName: StreamlitEcsStack
+      inputArtifactDownloadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
 
       deployArgs: >
         -c env=${{ github.event.inputs.aws_environment || 'dev' }}
