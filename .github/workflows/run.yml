@@ -36,10 +36,31 @@ jobs:
         id: account_num_step
         run: echo "account_num=${{ vars.ACCOUNT_NUM }}" >> "$GITHUB_OUTPUT"
 
-  
+  get-run-id:
+    runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.get-run.outputs.run_id }}
+
+    steps:
+      - name: Get latest workflow run ID
+        id: get-run
+        run: |
+          RUN_ID=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/runs \
+            | jq '[.workflow_runs[]
+                  | select(.name=="Run Docker Pipeline" and .conclusion=="success")]
+                  | sort_by(.created_at)
+                  | reverse
+                  | .[0].id')
+
+          echo "Latest run ID: $RUN_ID"
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
   dockerBuild:
     needs: 
     - SetupEnvVars
+    - get-run-id
     uses: Ggowthampatnaik/streamlit-ecr-deploy/.github/workflows/docker-build.yml@main
     with:
       AWSRoleToAssume: arn:aws:iam::493272324412:role/github-ecr-role
@@ -61,6 +82,8 @@ jobs:
       outputArtifactPath: scan_results/
       outputArtifactRetention: 5
       inputArtifactDownloadName: scan_results
+
+      run_id: ${{ needs.get-run-id.outputs.run_id }}
   
     secrets:
       orcaSecurityApiToken: ${{ secrets.ORCA_TOKEN }}
