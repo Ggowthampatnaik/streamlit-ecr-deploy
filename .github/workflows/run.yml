@@ -121,7 +121,7 @@ jobs:
       AWSRoleDurationSeconds: 900
       AWSMaskAccountId: false
   
-      workingDirectory: .
+      workingDirectory: ./app
   
       outputArtifactUploadName: ${{ github.event.inputs.aws_environment || 'dev' }}-infra
       outputArtifactRetention: 5
