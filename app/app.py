@@ -8,7 +8,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🚀 Welcome to Docker + Streamlit")
+st.title("🚀 Welcome to Docker + Streamlit...")
 st.write("This app is running inside a Docker container.")
 
 if st.button("Click Me"):
