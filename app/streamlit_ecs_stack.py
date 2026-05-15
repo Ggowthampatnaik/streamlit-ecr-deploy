@@ -5,6 +5,9 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
 )
+from aws_cdk import (
+    Duration
+)
 from constructs import Construct
 from aws_cdk import aws_iam as iam
 
