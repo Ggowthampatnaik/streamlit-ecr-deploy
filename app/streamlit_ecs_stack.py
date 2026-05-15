@@ -53,7 +53,7 @@ class StreamlitEcsStack(Stack):
     max_capacity=4
 )
 
-scaling.scale_on_request_count(
+        scaling.scale_on_request_count(
     "RequestScaling",
     requests_per_target=1,
     target_group=service.target_group,
