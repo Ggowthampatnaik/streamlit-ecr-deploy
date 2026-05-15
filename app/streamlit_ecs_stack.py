@@ -48,6 +48,18 @@ class StreamlitEcsStack(Stack):
                 container_port=8501
             )
         )
+        scaling = service.service.auto_scale_task_count(
+    min_capacity=0,
+    max_capacity=4
+)
+
+scaling.scale_on_request_count(
+    "RequestScaling",
+    requests_per_target=1,
+    target_group=service.target_group,
+    scale_in_cooldown=Duration.seconds(120),
+    scale_out_cooldown=Duration.seconds(30)
+)
         service.task_definition.execution_role.add_to_policy(
     iam.PolicyStatement(
         actions=[
